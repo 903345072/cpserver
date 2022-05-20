@@ -13,7 +13,7 @@ use Dotenv\Dotenv;
 use support\Request;
 use support\Log;
 use support\Container;
-use Hyperf\AopIntegration\ClassLoader;
+
 
 ini_set('display_errors', 'on');
 error_reporting(E_ALL);
@@ -32,9 +32,7 @@ if ($timezone = config('app.default_timezone')) {
     date_default_timezone_set($timezone);
 }
 
-try {
-    ClassLoader::init();
-}catch (Exception $e){}
+
 
 Worker::$onMasterReload = function () {
     if (function_exists('opcache_get_status')) {

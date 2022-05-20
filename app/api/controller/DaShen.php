@@ -11,10 +11,14 @@ class DaShen extends Base{
 
     public function getDashenList(Request $request){
         $user = \app\api\model\user::query()->select(["uid","avatar","is_dashen","lianhong","win_rate","profit_rate","real_name","now_money","award_amount"]);
-        $tuijian = $user->where("is_dashen",1)->orderBy("dashen_order","desc")->limit(4)->get()->toArray();
-        $lianhong =   $user->orderBy("lianhong","desc")->limit(4)->get()->toArray();
-        $shenglv =   $user->orderBy("win_rate","desc")->limit(4)->get()->toArray();
-        $yingli =   $user->orderBy("profit_rate","desc")->limit(4)->get()->toArray();
+        $clone1 = clone $user;
+        $clone2 = clone $user;
+        $clone3 = clone $user;
+        $clone4 = clone $user;
+        $tuijian = $clone1->where("is_dashen",1)->orderBy("dashen_order","desc")->limit(4)->get()->toArray();
+        $lianhong =   $clone2->orderBy("lianhong","desc")->limit(4)->get()->toArray();
+        $shenglv =   $clone3->orderBy("win_rate","desc")->limit(4)->get()->toArray();
+        $yingli =   $clone4->orderBy("profit_rate","desc")->limit(4)->get()->toArray();
         return $this->success(compact('tuijian','lianhong','shenglv','yingli'));
     }
 
@@ -40,6 +44,13 @@ class DaShen extends Base{
             })->where("mode",2)->where("state",0)->where("stop_time",">",time())->orderBy("flow_amount","desc");
         }
         $data = $model->offset(($page-1)*$pageSize)->limit($pageSize)->get()->toArray();
+        foreach ($data as $k=>&$v){
+            if(strtotime($v["stop_time"]) > time() && $v["mode"] == 2 && $v["state"] == 0 && $v["uid"] != getUser($request)->userid){
+                $v["can_flow"] = true;
+            }else{
+                $v["can_flow"] = false;
+            }
+        }
         return $this->success(["data"=>$data]);
     }
 
@@ -50,6 +61,11 @@ class DaShen extends Base{
         $is_guanzhu = Db::table("eb_user_flow")->where("flow_user_id",$data[0]["uid"])->where("uid",getUser($request)->userid)->first();
         $data[0]["is_guanzhu"] = $is_guanzhu?1:0;
         \app\api\model\Order::setOrderData($data);
+        if(strtotime($data[0]["stop_time"]) > time() && $data[0]["mode"] == 2 && $data[0]["state"] == 0 && $data[0]["uid"] != getUser($request)->userid){
+            $data[0]["can_flow"] = true;
+        }else{
+            $data[0]["can_flow"] = false;
+        }
         return $this->success($data[0]);
     }
 
@@ -76,6 +92,18 @@ class DaShen extends Base{
     public function getHomePage(Request $request){
         $uid = $request->input("uid");
         $data = \app\api\model\user::with("printedOrders")->where("uid",$uid)->first()->toArray();
+        $pto = $data["printedOrders"];
+        if($pto){
+            foreach ($pto as $k=>&$v1){
+                if(strtotime($v1["stop_time"]) > time() && $v1["mode"] == 2 && $v1["state"] == 0 && $v1["uid"] != getUser($request)->userid){
+                    $v1["can_flow"] = true;
+                }else{
+                    $v1["can_flow"] = false;
+                }
+            }
+        }
+        $data["printedOrders"] = $pto;
+
         $fans_count = Db::table("eb_user_flow")->where("flow_user_id",$uid)->count();
         $o_m = Db::table("eb_order")->where("uid",$uid);
         $c_om = clone $o_m;

@@ -67,7 +67,7 @@ class basketGame extends Model
         $data = self::where("m_status","Fixture")->where("dtime",">",date("Y-m-d H:i:s",time()))->orderBy("num","asc")->get();
         $d = [];
         foreach ($data as $k=>$v){
-            if($v["dtime"] != "ex"){
+            if($v["stop_time"] != "ex"){
                 $d[date("Y-m-d",strtotime($v["stop_time"]))][] = $v;
             }
         }

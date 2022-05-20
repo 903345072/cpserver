@@ -85,7 +85,7 @@ class index extends Base{
             ]
         ];
         $token = JWT::encode($token, $key,"HS256"); //输出Token
-        return $this->success($token,"登录成功");
+        return $this->success(["token"=>$token,'user'=>$model],"登录成功");
     }
 
     public function sendCode(Request $request){

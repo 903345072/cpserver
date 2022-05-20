@@ -34,9 +34,14 @@ class user extends Model
 
     public function getFivesAttribute(){
 
-        $data = isset($this->attributes["five_grade"])?unserialize($this->attributes["five_grade"]):[];
-        if(!$data){
-            $data = [];
+        $data = [];
+        $order = $this->orders()->whereIn("state",[1,2,3])->limit(5)->get()->toArray();
+        foreach ($order as $k=>$v){
+            if($v["state"] == 2 || $v["state"] == 3){
+                $data[] = 1;
+            }else{
+                $data[] = 0;
+            }
         }
         return $data;
     }

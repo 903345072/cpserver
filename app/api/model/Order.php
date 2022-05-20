@@ -62,14 +62,14 @@ class Order extends Model
     protected $yuji_jj;
     protected $stop_time;
     protected $tick_time;
-    protected $appends = ['en_type',"order_time","en_state",'tick_time',"stop_time","chuan","send_award_time","cancel_time","en_mode","is_checked","stime","grouptime_h","grouptime_m","grouptime_s","can_flow"];
+    protected $appends = ['en_type',"order_time","en_state",'tick_time',"stop_time","chuan","send_award_time","cancel_time","en_mode","is_checked","stime","grouptime_h","grouptime_m","grouptime_s"];
 
     public static function setOrderData(&$data){
         foreach ($data as $k=>$v){
             if($v["type"] == "foot" || $v["type"] == "basket" || $v["type"] == "bd"){
                 foreach ($v["order_details"] as $k1=>$v1){
                     foreach ($v1["bet_content"] as $k2=>$v2){
-                        $uid = getUser(\request())->userid;
+                        $uid = \request()?getUser(\request())->userid:"-1";
                         if($uid == $v["uid"] || $v["is_open"] == 1){
 
                             $data[$k]['order_detail'][$v2["game_id"]][] = $v2;
@@ -100,15 +100,15 @@ class Order extends Model
                     unset($data[$k]['order_details']);
                 }
 
-               if (isset($data[$k]['order_detail'])){
-                   $arr =  $data[$k]['order_detail'];
-                   foreach ($arr as $k3=>$v3){
-                       $data[$k]['order_detail_'][] = $v3;
-                   }
-                   unset($data[$k]['order_detail']);
-               }else{
-                   $data[$k]['order_detail_'] = [];
-               }
+                if (isset($data[$k]['order_detail'])){
+                    $arr =  $data[$k]['order_detail'];
+                    foreach ($arr as $k3=>$v3){
+                        $data[$k]['order_detail_'][] = $v3;
+                    }
+                    unset($data[$k]['order_detail']);
+                }else{
+                    $data[$k]['order_detail_'] = [];
+                }
 
             }
 
@@ -127,44 +127,64 @@ class Order extends Model
     public function getEnTypeAttribute()
     {
         $arr = \config("gameType");
-        return $arr[$this->attributes['type']];
-
-    }
-
-    public function getCanFlowAttribute()
-    {
-        if($this->attributes["stop_time"] > time() && $this->attributes["mode"] == 2 && $this->attributes["state"] == 0 && getUser(\request())->userid != $this->attributes["uid"]){
-            return true;
+        if (isset($this->attributes['type']) && !empty($this->attributes['type'])){
+            return $arr[$this->attributes['type']];
         }else{
-            return false;
+            return "";
         }
+
     }
+
+
 
     public function getStimeAttribute()
     {
-        $time = $this->attributes['stop_time']-time();
-        return $time;
+        if(isset($this->attributes['stop_time']) && !empty($this->attributes['stop_time'])){
+            $time = $this->attributes['stop_time']-time();
+            return $time;
+        }else{
+            return 0;
+        }
+
     }
 
     public function getGrouptimeHAttribute()
     {
-        $time = $this->attributes['stop_time']-time();
-        $a = floor(($time/3600)%24)+floor($time/86400)*24;
-        return $a<10?"0".$a:$a;
+
+
+        if(isset($this->attributes['stop_time']) && !empty($this->attributes['stop_time'])){
+            $time = $this->attributes['stop_time']-time();
+            $a = floor(($time/3600)%24)+floor($time/86400)*24;
+            return $a<10?"0".$a:$a;
+        }else{
+            return "0";
+        }
+
     }
 
     public function getGrouptimeMAttribute()
     {
-        $time = $this->attributes['stop_time']-time();
-        $a = floor(($time/60)%60);
-        return $a<10?"0".$a:$a;
+
+
+        if(isset($this->attributes['stop_time']) && !empty($this->attributes['stop_time'])){
+            $time = $this->attributes['stop_time']-time();
+            $a = floor(($time/60)%60);
+            return $a<10?"0".$a:$a;
+        }else{
+            return "0";
+        }
     }
 
     public function getGrouptimeSAttribute()
     {
-        $time = $this->attributes['stop_time']-time();
-        $a = floor(($time)%60);
-        return $a<10?"0".$a:$a;
+        if(isset($this->attributes['stop_time']) && !empty($this->attributes['stop_time'])){
+            $time = $this->attributes['stop_time']-time();
+            $a = floor(($time)%60);
+            return $a<10?"0".$a:$a;
+        }else{
+            return "0";
+        }
+
     }
 
 
@@ -177,26 +197,30 @@ class Order extends Model
 
     public function getEnModeAttribute()
     {
-        $mode = $this->attributes['mode'];
-        if($mode == 1){
-            return "普通";
-        }
-        if($mode == 2){
-            return "发单";
-        }
-        if($mode == 3){
-            return "跟单";
-        }
-        if($mode == 4){
-            return "优化";
+        if (isset($this->attributes['mode']) && !empty($this->attributes['mode'])){
+            $mode = $this->attributes['mode'];
+            if($mode == 1){
+                return "普通";
+            }
+            if($mode == 2){
+                return "发单";
+            }
+            if($mode == 3){
+                return "跟单";
+            }
+            if($mode == 4){
+                return "优化";
+            }
+        }else{
+            return "";
         }
     }
 
     public function getEnStateAttribute()
     {
-       if($this->attributes["state"] == -1){
-           return "出票中";
-       }
+        if($this->attributes["state"] == -1){
+            return "出票中";
+        }
         if($this->attributes["state"] == 0){
             return "未开奖";
         }
@@ -226,42 +250,62 @@ class Order extends Model
     public function getTickTimeAttribute()
     {
 
-        return $this->attributes["tick_time"]? date("Y-m-d H:i:s",$this->attributes["tick_time"]):"暂未出票";
+        if (isset($this->attributes["tick_time"]) && !empty($this->attributes["tick_time"])){
+            return date("Y-m-d H:i:s",$this->attributes["tick_time"]);
+        }else{
+            return "暂未出票";
+        }
 
     }
 
     public function getSendAwardTimeAttribute()
     {
 
-        return $this->attributes["send_award_time"]? date("Y-m-d H:i:s",$this->attributes["send_award_time"]):"未派奖";
+        if (isset($this->attributes["send_award_time"]) && !empty($this->attributes["send_award_time"])){
+            return $this->attributes["send_award_time"]? date("Y-m-d H:i:s",$this->attributes["send_award_time"]):"未派奖";
+        }else{
+            return "未派奖";
+        }
 
     }
     public function getCancelTimeAttribute()
     {
 
-        return $this->attributes["cancel_time"]? date("Y-m-d H:i:s",$this->attributes["cancel_time"]):"无";
+        if (isset($this->attributes["cancel_time"]) && !empty($this->attributes["cancel_time"])){
+            return $this->attributes["cancel_time"]? date("Y-m-d H:i:s",$this->attributes["cancel_time"]):"无";
+        }else{
+            return "无";
+        }
 
     }
     public function getStopTimeAttribute()
     {
 
-        return date("Y-m-d H:i:s",$this->attributes["stop_time"]);
+        if(isset($this->attributes["stop_time"]) && !empty($this->attributes["stop_time"])){
+            return date("Y-m-d H:i:s",$this->attributes["stop_time"]);
+        }else{
+            return "暂无";
+        }
 
     }
 
     public function getChuanAttribute()
     {
 
-        $chuan = $this->attributes["chuan"];
-        $chuan = explode(",",$chuan);
+        if (isset($this->attributes["chuan"]) && !empty($this->attributes["chuan"])){
+            $chuan = $this->attributes["chuan"];
+            $chuan = explode(",",$chuan);
 
-        foreach ($chuan as $k=>&$v){
-            if($v != '单关'){
-                $v = $v."串1";
+            foreach ($chuan as $k=>&$v){
+                if($v != '单关'){
+                    $v = $v."串1";
+                }
             }
+            $chuan = implode(",",$chuan);
+            return $chuan;
+        }else{
+            return "";
         }
-        $chuan = implode(",",$chuan);
-        return $chuan;
 
     }
 

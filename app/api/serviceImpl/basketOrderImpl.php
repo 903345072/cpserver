@@ -18,7 +18,7 @@ namespace app\api\serviceImpl;
              }
          }
          $stop_time = array_column(basketGame::whereIn("id",$check_ids)->get()->toArray(),"stop_time");
-         rsort($stop_time);
+         ksort($stop_time);
        return $stop_time[0];
      }
 

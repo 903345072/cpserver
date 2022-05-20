@@ -488,7 +488,7 @@ function getStopTime($time,$game_time,$type="foot"){
         }else{
             $stop_time = Date("Y-m-d H:i:s",strtotime($time)-$forward_time);
         }
-        if(strtotime($time) < time()){
+        if(strtotime($time) < time() || strtotime($stop_time) < time()){
             $stop_time = "ex";
         }
         return $stop_time;

@@ -156,7 +156,7 @@ class Order extends Base
                     $back_money = ($v["award_money"]/0.92)*0.04;
                     $p_user->award_amount = $p_user->award_amount + round($back_money,2);
                     $p_user->save();
-                    bill::addBill($p_order->uid,$v["pid"],1,"中奖返佣","award_amount","win_prize_yj",$back_money,$p_user->award_amount,"中奖返佣");
+                    bill::addBill($p_order->uid,$v["pid"],1,"中奖返佣","award_amount","order_back_money",$back_money,$p_user->award_amount,"中奖返佣");
                 }
                 bill::addBill($v["uid"],$v["id"],1,"中奖","award_amount","win_prize",$v["award_money"],$u_model->award_amount,"中奖".$v["award_money"]."元");
             }

@@ -45,7 +45,7 @@ class Pool extends Base{
         $bill_model2 = clone $bill_model;
 
         $chupiao = $order_model->whereIn("state",[0,1,2,3])->sum("amount");
-        $zhongjiang = $order_model_->where("state",3)->sum("amount");
+        $zhongjiang = $order_model_->where("state",3)->sum("award_money");
         $recharge = $bill_model->where("type","recharge")->sum("number");
         $add = $bill_model1->where("type","system")->where("pm",1)->sum("number");
         $sub = $bill_model2->where("type","system")->where("pm",0)->sum("number");
@@ -102,7 +102,7 @@ class Pool extends Base{
         $user_count = \app\api\model\user::where("is_moni",0)->count();
         $shop_money1 = \app\api\model\user::where("is_moni",0)->sum("award_amount");
         $shop_money2 = \app\api\model\user::where("is_moni",0)->sum("now_money");
-        $shop_money = $shop_money1+$shop_money2;
+        $shop_money = round($shop_money1+$shop_money2,2);
         return $this->success(compact("name","logo","user_count","shop_money"));
     }
 

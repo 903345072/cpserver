@@ -69,6 +69,7 @@ class User extends Base
             $res1 = $user->save();
             $pm = $value>0?1:0;
             $title = $value>0?"店主加款":"店主扣款";
+            $mark = $mark?$mark:$title;
             bill::addBill($user->uid,$user->uid,$pm,$title,"now_money","system",$value,$user->now_money,$mark);
             DB::commit();
         }catch (\Exception $e){
@@ -82,8 +83,12 @@ class User extends Base
     {
         $page =  $request->input("pageNo",1);
         $pageSize =  $request->input("pageSize",10);
-
-        $arr = \app\api\model\user::orderBy("uid","desc")->offset(($page-1)*$pageSize)->limit($pageSize)->get()->toArray();
+        $nickname =  $request->input("nickname","");
+        $model = \app\api\model\user::orderBy("uid","desc");
+        if ($nickname){
+            $model = $model->where('nickname',$nickname)->orWhere('nickname','like','%'.$nickname.'%');
+        }
+        $arr = $model->offset(($page-1)*$pageSize)->limit($pageSize)->get()->toArray();
         return $this->success($arr);
     }
 
@@ -131,7 +136,7 @@ class User extends Base
             $model = $model->whereBetween("order_time",$time);
         }
         $data = $model->orderBy("order_time","desc")->offset(($page-1)*$pageSize)->limit($pageSize)->get()->toArray();
-        \app\api\model\Order::setOrderData($data);
+        \app\admin\model\Order::setOrderData($data);
         return $this->success($data);
     }
 

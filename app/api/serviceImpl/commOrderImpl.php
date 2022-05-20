@@ -75,10 +75,11 @@ namespace app\api\serviceImpl;
                                  Db::table("eb_order_detail")->where("id",$v1["id"])->update(["ret"=>1]);
                                  $v2["ret"] = 1;
                              }
-                             $v2["qcbf"] = $type=="eb_football_mix_odds" || $type == "eb_basketball_mix_odds"?$game_result["final"]:$game_result["qcbf"];
-                             $v2["bcbf"] = $type=="eb_football_mix_odds" || $type == "eb_basketball_bd_odds"?$game_result["half"]:$game_result["qcbf"];
+                             $v2["qcbf"] = $type=="eb_football_mix_odds" || $type == "eb_football_bd_odds"?$game_result["final"]:$game_result["qcbf"];
+                             $v2["bcbf"] = $type=="eb_football_mix_odds" || $type == "eb_football_bd_odds"?$game_result["half"]:$game_result["qcbf"];
                          }
                      }
+
                      Db::table("eb_order_detail")->where("id",$v1["id"])->update(["bet_content"=>serialize($bet_arr)]);
                      if($flag == count($bet_arr)){
                          $award_arr[] = ["pl"=>$zhu_pl,"num"=>$v1["num"]];
@@ -113,6 +114,7 @@ namespace app\api\serviceImpl;
 
          }
      }
+
 
       abstract function checkRight($met, $game_result,$p_goal,$name,$game_id);
       private function updateUserInfo($uid,$flag){

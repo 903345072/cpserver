@@ -19,7 +19,7 @@ namespace app\api\serviceImpl;
              }
          }
          $stop_time = array_column(footGame::whereIn("id",$check_ids)->get()->toArray(),"stop_time");
-         rsort($stop_time);
+         ksort($stop_time);
        return $stop_time[0];
      }
 
@@ -34,16 +34,7 @@ namespace app\api\serviceImpl;
              $arr = $model->hhad_odds;
          }
          if($met_arr[0] == 3){
-             if($met_arr[1] >= 1 && $met_arr[1] <= 13){
-                 $arr = $model->crs_win;
-             }
-
-             if($met_arr[1] >= 14 && $met_arr[1] <= 18){
-                 $arr = $model->crs_draw;
-             }
-             if($met_arr[1] >= 19 && $met_arr[1] <= 31){
-                 $arr = $model->crs_lose;
-             }
+             $arr = $model->crs_win.",".$model->crs_draw.','.$model->crs_lose;
          }
          if($met_arr[0] == 4){
              $arr = $model->ttg_odds;

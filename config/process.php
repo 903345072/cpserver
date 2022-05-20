@@ -34,12 +34,12 @@ return [
             ]
         ]
     ],
-    'websocket_test' => [
-        // 这里指定进程类，就是上面定义的Pusher类
-        'handler' => process\Chat::class,
-        'listen'  => 'websocket://0.0.0.0:8888',
-        'count'   => 2,
-    ],
+//    'websocket_test' => [
+//        // 这里指定进程类，就是上面定义的Pusher类
+//        'handler' => process\Chat::class,
+//        'listen'  => 'websocket://0.0.0.0:8888',
+//        'count'   => 2,
+//    ],
     'task'=>[
         'handler' => process\CronTask::class,
     ]

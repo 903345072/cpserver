@@ -16,6 +16,33 @@ use support\Db;
 
 class Order extends Base
 {
+
+    public function getmaxdim($vDim)
+    {
+        if(!is_array($vDim)) return 0;
+
+        else
+
+        {
+
+            $max1 = 0;
+
+            foreach($vDim as $item1)
+
+            {
+
+                $t1 = $this->getmaxdim($item1);
+
+                if( $t1 > $max1) $max1 = $t1;
+
+            }
+
+            return $max1 + 1;
+
+        }
+
+    }
+
     public function doOrder(Request $request)
     {
 
@@ -28,9 +55,18 @@ class Order extends Base
         $num_arr = json_decode($data["num_arr"],1);
 
         $order_factory = new OrderFactory($data["type"]);
-        $stop_time = $order_factory->createOrderServiceImpl()->getOrderStopTime($check_game);
+
+
         $chuan = array_column(json_decode($data["chuan"],1),"value");
         $chuan = array_unique($chuan);
+        if($this->getmaxdim($check_game) == 2){
+            foreach ($check_game as $k=>&$v){
+
+                $v = [$v];
+
+            }
+        }
+        $stop_time = $order_factory->createOrderServiceImpl()->getOrderStopTime($check_game);
         $model->chuan = implode(",",$chuan);
         $model->uid = getUser($request)->userid;
 
@@ -64,9 +100,9 @@ class Order extends Base
                 DB::rollback();
                 return $this->error("","预存不足");
             }
-           //主订单
-           $res = $order_factory->createOrderServiceImpl()->create($model);
-           //订单详情1
+            //主订单
+            $res = $order_factory->createOrderServiceImpl()->create($model);
+            //订单详情1
             $arr = [];
             foreach ($check_game as $k=>$v){
                 if ($data["type"] == "foot" || $data["type"] == "basket" || $data["type"] == "bd"){
@@ -78,18 +114,18 @@ class Order extends Base
                 }
                 $arr[] = ["order_id"=>$model->id,"bet_content"=>serialize($v),"num"=>$data["mode"]==1 || $data["mode"]==2?$data["bei"]:$num_arr[$k]["zhu"]];
             }
-           $res1 = DB::table('eb_order_detail')->insert($arr);
-           if($user->now_money >= $model->amount){
-              $user->now_money-=$model->amount;
-           }else{
-               $sub_money = $model->amount - $user->now_money;
-               $user->now_money = 0;
-               $user->award_amount -= $sub_money;
-           }
-           $user->save();
+            $res1 = DB::table('eb_order_detail')->insert($arr);
+            if($user->now_money >= $model->amount){
+                $user->now_money-=$model->amount;
+            }else{
+                $sub_money = $model->amount - $user->now_money;
+                $user->now_money = 0;
+                $user->award_amount -= $sub_money;
+            }
+            $user->save();
             bill::addBill($user->uid,$model->id,0,"购彩","now_money","buy_lottery",$model->amount,$user->now_money,"用户购彩");
 
-           DB::commit();
+            DB::commit();
 
         }catch (\Exception $ex){
             DB::rollback();
@@ -142,6 +178,7 @@ class Order extends Base
 
 
             foreach ($arr as $k=>&$v){
+                $v["num"] = $model->bei;
                 $v["order_id"] = $model->id;
                 $v["bet_content"] = serialize($v["bet_content"]);
                 unset($v["id"]);
@@ -181,7 +218,8 @@ class Order extends Base
         $type = $request->input("state",-1)-2;
         $page =  $request->input("pageNo",1);
         $pageSize =  $request->input("pageSize",10);
-        $model =\app\api\model\Order::with("orderDetails");
+        $uid = getUser($request)->userid;
+        $model =\app\api\model\Order::with("orderDetails")->where("uid",$uid);
         if($type != -2){
             $model = $model->where("state",$type);
         }else{

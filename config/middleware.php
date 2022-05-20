@@ -22,5 +22,6 @@ return [
     ],
     'api' => [
         app\middleware\UserAuthCheck::class,
+        app\middleware\RealNameCheck::class,
     ]
 ];

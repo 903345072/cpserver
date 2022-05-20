@@ -15,7 +15,10 @@
 use Webman\Route;
 
 
+Route::any('/api', [app\api\controller\Index::class, 'footGames'])->middleware([
+    app\middleware\RealNameCheck::class,
 
+]);
 
 
 

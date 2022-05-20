@@ -26,8 +26,9 @@ class User extends Base
         $data = \app\api\model\user::with("cardInfo")->where("uid",$data->userid)->first()->toArray();
         $data["shop_name"] = \config("shop")["name"];
         $data["all_money"] = $data["now_money"] + $data["award_amount"];
-        $url ="http://localhost:8080/pages/my/register?code=".$data["invite_code"];
-        //$url = urlencode($url);
+        $url ="http://"."taoliao.whxmst.com"."/#/pages/my/register?code=".$data["invite_code"];
+
+        $url = urlencode($url);
         $data["qrcode"] = "http://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=0&data=$url";
         $guanzhu = Db::table("eb_user_flow")->where("uid",$data["uid"])->count();
         $fans_count =Db::table("eb_user_flow")->where("flow_user_id",$data["uid"])->count();
@@ -321,6 +322,42 @@ class User extends Base
         $count = $model->count();
         $data = $model->orderBy("add_time","desc")->offset(($page-1)*$pageSize)->limit($pageSize)->get()->toArray();
         return $this->success(["data"=>$data,"count"=>$count]);
+    }
+
+    public function betList(Request $request)
+    {
+        $uid = $request->input("uid","");
+        if(!$uid){
+            $uid = getUser($request)->userid;
+        }
+        $uids =  \app\api\model\user::where("pid",$uid)->get()->toArray();
+        $uids = array_column($uids,"uid");
+        $name = $request->input("user","");
+        $time = $request->input("range","");
+        $page =  $request->input("pageNo",1);
+        $pageSize =  $request->input("pageSize",10);
+        $model = \app\api\model\Order::whereIn("uid",$uids);
+        if($time){
+            $time = explode(",",$time);
+            $time = [strtotime($time[0]),strtotime($time[1])];
+            $model = $model->whereBetween("order_time",$time);
+        }
+        $model = $model->with("user")->whereHas("user",function ($q)use($name){
+            if($name){
+                $q->where(function ($q)use($name){
+                    $q->orWhere('phone','like','%'.$name."%");
+                    $q->orWhere('phone',$name);
+                    $q->orWhere('nickname','like','%'.$name."%");
+                    $q->orWhere('nickname',$name);
+
+                });
+            }
+        });
+
+        $clone_model = clone $model;
+        $bet_amount = $clone_model->whereIn("state",[0,1,2,3])->sum("amount");
+        $data = $model->orderBy("order_time","desc")->offset(($page-1)*$pageSize)->limit($pageSize)->get()->toArray();
+        return $this->success(["data"=>$data,"bet_amount"=>$bet_amount]);
     }
 
     public function orderRecord(Request $request)

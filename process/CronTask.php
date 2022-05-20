@@ -39,15 +39,15 @@ class CronTask{
 
         //平仓足球
         new Crontab('*/3 * * * *', function(){
-            $data = Order::with("orderDetails")->where("state",0)->where("type","foot")->limit(300)->get()->toArray();
-            $factory = new \app\api\service\OrderFactory("basket");
+            $data = Order::with("orderDetails")->where("state",0)->where("type","foot")->orderBy("order_time","asc")->limit(300)->get()->toArray();
+            $factory = new \app\api\service\OrderFactory("foot");
             $factory->createOrderServiceImpl()->holdOrder($data,"eb_football_mix_odds");
         });
 
         //平仓篮球
         new Crontab('*/3 * * * *', function(){
-            $data = Order::with("orderDetails")->where("state",0)->where("type","foot")->limit(300)->get()->toArray();
-            $factory = new \app\api\service\OrderFactory("foot");
+            $data = Order::with("orderDetails")->where("state",0)->where("type","basket")->orderBy("order_time","asc")->limit(300)->get()->toArray();
+            $factory = new \app\api\service\OrderFactory("basket");
             $factory->createOrderServiceImpl()->holdOrder($data,"eb_basketball_mix_odds");
         });
     }
