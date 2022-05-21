@@ -22,7 +22,8 @@ class index extends Base{
         $phone = Config::get("shop")["phone"];
         $wechat = Config::get("shop")["wechat"];
         $gonggao = Db::table("eb_system_config")->where("menu_name","gonggao")->value("value");
-        return $this->success(compact("logo","name","phone","wechat","gonggao"));
+        $downUrl  = "http://taoliao.hhzs.vip/app/";
+        return $this->success(compact("logo","name","phone","wechat","gonggao","downUrl"));
     }
 
     public function Login(Request $request){

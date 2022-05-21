@@ -85,11 +85,20 @@ class User extends Base
         $pageSize =  $request->input("pageSize",10);
         $nickname =  $request->input("nickname","");
         $model = \app\api\model\user::orderBy("uid","desc");
-        if ($nickname){
-            $model = $model->where('nickname',$nickname)->orWhere('nickname','like','%'.$nickname.'%');
+        $clone = clone $model;
+        $model = $model->where("is_seller",0);
+        $clone = $clone->where("is_seller",1);
+        if($nickname){
+            $model = $model->where(function ($q)use($nickname){
+                $q->where('nickname',$nickname)->orWhere('nickname','like','%'.$nickname.'%');
+            });
+            $clone = $clone->where(function ($q)use($nickname){
+                $q->where('nickname',$nickname)->orWhere('nickname','like','%'.$nickname.'%');
+            });
         }
         $arr = $model->offset(($page-1)*$pageSize)->limit($pageSize)->get()->toArray();
-        return $this->success($arr);
+        $arr1 = $clone->get()->toArray();
+        return $this->success(["common_user"=>$arr,"seller_user"=>$arr1]);
     }
 
     public function searchUser(Request $request)

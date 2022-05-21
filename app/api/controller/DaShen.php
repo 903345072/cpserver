@@ -92,8 +92,9 @@ class DaShen extends Base{
     public function getHomePage(Request $request){
         $uid = $request->input("uid");
         $data = \app\api\model\user::with("printedOrders")->where("uid",$uid)->first()->toArray();
-        $pto = $data["printedOrders"];
-        if($pto){
+        $pto = [];
+        if(isset($data["printedOrders"])){
+            $pto =  $data["printedOrders"];
             foreach ($pto as $k=>&$v1){
                 if(strtotime($v1["stop_time"]) > time() && $v1["mode"] == 2 && $v1["state"] == 0 && $v1["uid"] != getUser($request)->userid){
                     $v1["can_flow"] = true;
